@@ -1,5 +1,5 @@
+import { env } from 'node:process';
 import type { ModelInfo } from './types';
-
 export const WORK_DIR_NAME = 'project';
 export const WORK_DIR = `/home/${WORK_DIR_NAME}`;
 export const MODIFICATIONS_TAG_NAME = 'bolt_file_modifications';
@@ -36,7 +36,7 @@ export let MODEL_LIST: ModelInfo[] = [...staticModels];
 
 async function getOllamaModels(): Promise<ModelInfo[]> {
   try {
-    const response = await fetch(`http://localhost:11434/api/tags`);
+    const response = await fetch(`${env.OLLAMA_API_BASE_URL}api/tags`);
     const data = await response.json();
 
     return data.models.map((model: any) => ({
@@ -49,9 +49,24 @@ async function getOllamaModels(): Promise<ModelInfo[]> {
   }
 }
 
+async function getLmstudioModels(): Promise<ModelInfo[]> {
+  try {
+    const response = env.LMSTUDIO_API_BASE_URL;
+    const data = await response.json();
+    return data.data.map((model: any)=> ({
+      name: model.id,
+      label: model.id.replace('-', ' ').replace('/', '-'),
+      provider: 'Lmstudio',
+    }));
+  } catch (error) {
+    return [];
+  }
+}
+
 async function initializeModelList(): Promise<void> {
   const ollamaModels = await getOllamaModels();
-  MODEL_LIST = [...ollamaModels, ...staticModels];
+  const lmstudioModels = await getLmstudioModels();
+  MODEL_LIST = [...lmstudioModels, ...ollamaModels, ...staticModels];
 }
 initializeModelList().then();
-export { getOllamaModels, initializeModelList };
+export { getOllamaModels, getLmstudioModels, initializeModelList };

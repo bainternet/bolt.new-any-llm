@@ -6,6 +6,7 @@ import { createOpenAI } from '@ai-sdk/openai';
 import { createGoogleGenerativeAI } from '@ai-sdk/google';
 import { ollama } from 'ollama-ai-provider';
 import { createOpenRouter } from "@openrouter/ai-sdk-provider";
+import { env } from 'node:process';
 
 export function getAnthropicModel(apiKey: string, model: string) {
   const anthropic = createAnthropic({
@@ -44,6 +45,14 @@ export function getOllamaModel(model: string) {
   return ollama(model);
 }
 
+export function getLmstudioModel( apiKey: string, model: string ) {
+  const openai = createOpenAI({
+    baseURL: env.OPENAI_BASE_URL
+  });
+
+  return openai(model);
+}
+
 export function getOpenRouterModel(apiKey: string, model: string) {
   const openRouter = createOpenRouter({
     apiKey
@@ -67,6 +76,8 @@ export function getModel(provider: string, model: string, env: Env) {
       return getOpenRouterModel(apiKey, model);
     case 'Google':
       return getGoogleModel(apiKey, model)
+    case 'Lmstudio':
+      return getLmstudioModel(apiKey, model);
     default:
       return getOllamaModel(model);
   }
